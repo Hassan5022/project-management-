@@ -20,6 +20,7 @@
 
 body {
 	font-family: poppins, sans-serif;
+  font-size: 1.1em;
 	background-color: var(--bg-color);
 }
 
@@ -36,6 +37,12 @@ body {
 .btn:hover {
   color: #fff;
   background-color: var(--primary-color);
+}
+
+.page-title {
+  font-size: 1em;
+  color: var(--heading-color);
+  display: inline-block;
 }
 
  /* forms  */
