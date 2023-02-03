@@ -6,6 +6,8 @@ import "./Create.css";
 import { useCollection } from "../../hooks/useCollection";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { Timestamp } from "../../firebase/config";
+import { useFirestore } from "../../hooks/useFirestore";
+import { useNavigate } from "react-router-dom";
 
 const categories = [
 	{ value: "development", label: "Development" },
@@ -16,6 +18,7 @@ const categories = [
 
 const Create = () => {
 	const { documents } = useCollection("users");
+	const {addDocument, response} = useFirestore('projects')
 
 	const [name, setName] = useState("");
 	const [dueDate, setDueDate] = useState("");
@@ -23,8 +26,9 @@ const Create = () => {
 	const [category, setCategory] = useState("");
 	const [users, setUsers] = useState([]);
 	const [assignedUser, setAssignedUser] = useState([]);
-  const [formError, setFormError] = useState(null);
-  const {user} = useAuthContext()
+	const [formError, setFormError] = useState(null);
+	const { user } = useAuthContext();
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		if (documents) {
@@ -35,43 +39,47 @@ const Create = () => {
 		}
 	}, [documents]);
 
-  const handleSubmit = (e) => {
-    setFormError(null)
-    e.preventDefault();
-    if (!category) {
-      setFormError('Please select project category')
-      return
-    }
-    if (assignedUser.length < 1) {
-      setFormError('Please assign the project to atleast 1 user')
-      return
-    }
+	const handleSubmit = async (e) => {
+		setFormError(null);
+		e.preventDefault();
+		if (!category) {
+			setFormError("Please select project category");
+			return;
+		}
+		if (assignedUser.length < 1) {
+			setFormError("Please assign the project to atleast 1 user");
+			return;
+		}
 
-    const createdBy = {
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      id: user.uid
-    }
+		const createdBy = {
+			displayName: user.displayName,
+			photoURL: user.photoURL,
+			id: user.uid,
+		};
 
-    const assignedUserList = assignedUser.map(user => {
-      return {
-        displayName: user.value.displayName,
-        photoURL: user.value.photoURL,
-        id: user.value.id
-      }
-    })
+		const assignedUserList = assignedUser.map((user) => {
+			return {
+				displayName: user.value.displayName,
+				photoURL: user.value.photoURL,
+				id: user.value.id,
+			};
+		});
 
-    const project = {
-      name,
-      details,
-      category: category.value,
-      dueDate: Timestamp.fromDate(new Date(dueDate)),
-      comments: [],
-      createdBy,
-      assignedUserList
-    }
+		const project = {
+			name,
+			details,
+			category: category.value,
+			dueDate: Timestamp.fromDate(new Date(dueDate)),
+			comments: [],
+			createdBy,
+			assignedUserList,
+		};
 
-		console.log(project);
+		await addDocument(project)
+		if (!response.error) {
+			navigate('/')
+		}
+
 	};
 
 	return (
@@ -120,8 +128,8 @@ const Create = () => {
 						isMulti
 					/>
 				</label>
-        <button className="btn">Add Project</button>
-        {formError && <p className="error">{ formError }</p> }
+				<button className="btn">Add Project</button>
+				{formError && <p className="error">{formError}</p>}
 			</form>
 		</div>
 	);
