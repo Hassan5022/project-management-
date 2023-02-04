@@ -18,7 +18,7 @@ const categories = [
 
 const Create = () => {
 	const { documents } = useCollection("users");
-	const {addDocument, response} = useFirestore('projects')
+	const { addDocument, response } = useFirestore("projects");
 
 	const [name, setName] = useState("");
 	const [dueDate, setDueDate] = useState("");
@@ -28,7 +28,13 @@ const Create = () => {
 	const [assignedUser, setAssignedUser] = useState([]);
 	const [formError, setFormError] = useState(null);
 	const { user } = useAuthContext();
-	const navigate = useNavigate()
+	const navigate = useNavigate();
+
+	const isCorrectDate = (d) => {
+		const now = Date.now();
+		const due = Date.parse(d);
+		return due - now < 0 ? false : true;
+	};
 
 	useEffect(() => {
 		if (documents) {
@@ -42,6 +48,23 @@ const Create = () => {
 	const handleSubmit = async (e) => {
 		setFormError(null);
 		e.preventDefault();
+		console.log(isCorrectDate(dueDate));
+
+		if (name === "") {
+			setFormError("Project name can't be empty");
+			return;
+		}
+
+		if (details === "") {
+			setFormError("Project details can't empty");
+			return;
+		}
+
+		if (!isCorrectDate(dueDate)) {
+			setFormError("Please select a valid date");
+			return;
+		}
+
 		if (!category) {
 			setFormError("Please select project category");
 			return;
@@ -75,11 +98,10 @@ const Create = () => {
 			assignedUserList,
 		};
 
-		await addDocument(project)
+		await addDocument(project);
 		if (!response.error) {
-			navigate('/')
+			navigate("/");
 		}
-
 	};
 
 	return (
@@ -105,9 +127,9 @@ const Create = () => {
 					/>
 				</label>
 				<label>
-					<span>Project Name:</span>
+					<span>Project Date:</span>
 					<input
-						type="date"
+						type="datetime-local"
 						required
 						onChange={(e) => setDueDate(e.target.value)}
 						value={dueDate}
@@ -128,7 +150,9 @@ const Create = () => {
 						isMulti
 					/>
 				</label>
-				<button className="btn">Add Project</button>
+				{!response.isPending && <button className="btn">Add Project</button>}
+				{response.isPending && <button className="btn">Adding...</button>}
+
 				{formError && <p className="error">{formError}</p>}
 			</form>
 		</div>
