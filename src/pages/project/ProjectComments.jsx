@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { Timestamp } from "../../firebase/config";
 import { useFirestore } from "../../hooks/useFirestore";
+import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import Avatar from "../../components/Avatar";
 
 const ProjectComments = ({ project }) => {
@@ -42,7 +43,11 @@ const ProjectComments = ({ project }) => {
 								<p>{comment.displayName}</p>
 							</div>
 							<div className="comment-date">
-								<p>date here</p>
+								<p>
+									{formatDistanceToNow(comment.createdAt.toDate(), {
+										addSuffix: true,
+									})}
+								</p>
 							</div>
 							<div className="comment-content">
 								<p>{comment.content}</p>
